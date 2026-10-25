@@ -47,6 +47,18 @@ final class RemoteRepository
         return ['devices' => $devices, 'themes' => $themes, 'activity' => $logs];
     }
 
+    /** Full activity history for one user (the "View all activity" view). */
+    public function activityAll(int $userId, int $limit = 50): array
+    {
+        $statement = $this->conn->prepare(
+            'SELECT l.log_id, l.device_id, l.action, l.timestamp, d.device_name
+             FROM activity_logs l JOIN devices d ON d.device_id = l.device_id
+             WHERE d.user_id = :user ORDER BY l.timestamp DESC LIMIT ' . (int) $limit
+        );
+        $statement->execute([':user' => $userId]);
+        return $statement->fetchAll();
+    }
+
     /** Register a new account. The user starts with the 3 starter devices. */
     public function registerUser(string $name, string $email, string $password): array
     {

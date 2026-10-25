@@ -1,7 +1,17 @@
 <?php
 declare(strict_types=1);
 
+// Harden the session cookie: not readable from JavaScript, and sent
+// only over HTTPS when the site runs on HTTPS (InfinityFree does).
+session_set_cookie_params([
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+]);
 session_start();
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: no-referrer-when-downgrading');
 require_once __DIR__ . '/connection.php';
 require_once __DIR__ . '/classes/RemoteRepository.php';
 
@@ -269,7 +279,7 @@ window.REMOTE_APP = <?= json_encode(['csrfToken' => $_SESSION['csrf_token']], JS
                 </section>
 
                 <section class="panel" id="activityView" aria-labelledby="activityHeading">
-                    <div class="panel-head"><div><h2 id="activityHeading">Recent activity</h2><p>Your latest remote actions</p></div><button class="icon-button" type="button" data-view="activity" aria-label="View all activity">↗</button></div>
+                    <div class="panel-head"><div><h2 id="activityHeading">Recent activity</h2><p>Your latest remote actions</p></div><button class="icon-button" type="button" data-open="activity" aria-label="View all activity">↗</button></div>
                     <div class="activity-list" id="activityList">
                         <?php if ($activity): foreach ($activity as $item): ?>
                             <div class="activity-row"><div class="activity-mark" aria-hidden="true">⌁</div><div class="activity-copy"><strong><?= e($item['action']) ?></strong><span><?= e($item['device_name']) ?> · <?= e(relativeTime($item['timestamp'])) ?></span></div></div>
@@ -336,6 +346,18 @@ window.REMOTE_APP = <?= json_encode(['csrfToken' => $_SESSION['csrf_token']], JS
             <div class="field"><label id="themeSelectLabel">Remote theme</label><div class="custom-select" data-custom-select><button class="select-trigger" type="button" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-labelledby="themeSelectLabel themeSelectText"><span id="themeSelectText" data-select-label>Midnight</span><span class="select-chevron" aria-hidden="true">⌄</span></button><div class="select-menu" role="listbox" hidden><?php foreach ($themes as $theme): ?><button type="button" role="option" data-select-option data-value="<?= (int) $theme['theme_id'] ?>"><?= e($theme['theme_name']) ?></button><?php endforeach; ?></div><input id="themeSelect" type="hidden" value="1" data-select-value></div></div>
             <p class="form-message" id="settingsMessage" role="status"></p>
             <div class="modal-actions"><button class="btn btn-ghost" type="button" data-close-modal>Done</button><button class="btn btn-primary" type="button" id="saveTheme">Save theme</button></div>
+        </div>
+    </section>
+</div>
+
+<div class="modal-backdrop" id="activityModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="activityAllTitle">
+        <div class="modal-head"><div><h2 id="activityAllTitle">All activity</h2><p>Your full remote history.</p></div><button class="icon-button" type="button" data-close-modal aria-label="Close activity dialog">×</button></div>
+        <div class="modal-body">
+            <div class="activity-list" id="allActivityList" style="padding:0">
+                <div class="empty-activity">Loading…</div>
+            </div>
+            <div class="modal-actions"><button class="btn btn-ghost" type="button" data-close-modal>Done</button></div>
         </div>
     </section>
 </div>

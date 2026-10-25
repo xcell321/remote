@@ -1,12 +1,19 @@
 <?php
 declare(strict_types=1);
 
+// Harden the session cookie (see index.php for why).
+session_set_cookie_params([
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+]);
 session_start();
 require_once __DIR__ . '/../connection.php';
 require_once __DIR__ . '/../classes/RemoteRepository.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
 
 try {
     $repository = new RemoteRepository($conn);
@@ -26,6 +33,13 @@ try {
             respond(['ok' => false, 'message' => 'Please log in to continue.'], 401);
         }
         respond(['ok' => true, 'data' => ['agentOnline' => $repository->agentOnline()]]);
+    }
+
+    if ($method === 'GET' && ($_GET['action'] ?? '') === 'activity-all') {
+        if ($currentUser === null) {
+            respond(['ok' => false, 'message' => 'Please log in to continue.'], 401);
+        }
+        respond(['ok' => true, 'data' => $repository->activityAll((int) $currentUser['userId'])]);
     }
 
     if ($method !== 'POST') {

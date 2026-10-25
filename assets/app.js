@@ -74,6 +74,10 @@
     if (name) name.textContent = device.device_name;
     if (meta) meta.textContent = `${device.brand} · ${device.device_type}`;
     if (emblem) emblem.textContent = device.device_type.toLowerCase().includes('audio') ? 'A' : device.device_type.toLowerCase().includes('projector') ? 'P' : 'TV';
+    // The power button's label used to stay on the first device even
+    // after switching -- keep it in sync with the active device.
+    const powerButton = $('[data-command="power"]');
+    if (powerButton) powerButton.setAttribute('aria-label', `Power ${device.device_name}`);
     renderApps(device);
     const ds = deviceState(device.device_id);
     $('#volumeValue').textContent = String(ds.volume);
@@ -162,6 +166,28 @@
     row.innerHTML = `<div class="activity-mark" aria-hidden="true">⌁</div><div class="activity-copy"><strong>${escapeHtml(action)}</strong><span>${escapeHtml(deviceName)} · Just now</span></div>`;
     list.prepend(row);
     while ($$('.activity-row', list).length > 8) list.lastElementChild.remove();
+  }
+
+  async function loadAllActivity() {
+    // The "View all activity" button now opens a real full-history
+    // view (up to 50 entries, this user's only) instead of just
+    // scrolling to the panel it already sits in.
+    const list = $('#allActivityList');
+    if (!list) return;
+    list.innerHTML = '<div class="empty-activity">Loading…</div>';
+    try {
+      const items = await apiGet('activity-all');
+      if (!items.length) {
+        list.innerHTML = '<div class="empty-activity">Your remote history will appear here.</div>';
+        return;
+      }
+      list.innerHTML = items.map((item) => {
+        const when = item.timestamp ? new Date(String(item.timestamp).replace(' ', 'T')).toLocaleString() : '';
+        return `<div class="activity-row"><div class="activity-mark" aria-hidden="true">⌁</div><div class="activity-copy"><strong>${escapeHtml(item.action)}</strong><span>${escapeHtml(item.device_name)} · ${escapeHtml(when)}</span></div></div>`;
+      }).join('');
+    } catch (error) {
+      list.innerHTML = `<div class="empty-activity">${escapeHtml(error.message)}</div>`;
+    }
   }
 
   function bindAppChips() {
@@ -260,8 +286,10 @@
       if (!button) return;
       const target = button.dataset.open === 'add-device' ? 'addDeviceModal'
         : button.dataset.open === 'add-shortcut' ? 'addShortcutModal'
-        : button.dataset.open === 'profile' ? 'profileModal' : 'settingsModal';
+        : button.dataset.open === 'profile' ? 'profileModal'
+        : button.dataset.open === 'activity' ? 'activityModal' : 'settingsModal';
       openModal(target);
+      if (button.dataset.open === 'activity') loadAllActivity();
     });
     $$('[data-close-modal]').forEach((button) => button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop'))));
     $$('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => {

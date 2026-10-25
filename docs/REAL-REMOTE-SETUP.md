@@ -64,6 +64,18 @@ Kada tawo naay kaugalingong account ug kaugalingong devices:
    (usa ka agent sa balay mo-execute sa tanang queued commands,
    bisan kinsa pa ang nagpadala). Ang per-user nga proteksyon naa
    sa website/API level — ang agent mosalig sa queue.
+5. **Pamilya nga gusto mo-control sa parehas nga physical TV:**
+   ang device list sa matag user private — ang laing user
+   makakita ra sa iyang kaugalingong devices. Kung gusto nimo
+   nga ang pamilya maka-control sa parehas nga TV, idugang lang
+   sa `agent/config.json` ang entry para sa ilang device_id nga
+   nag-point sa parehas nga IP/type (pananglitan, kung ang ilang
+   "Living room TV" kay device_id 5, idugang ang `"5"` nga
+   parehas og IP sa `"1"`). Makita ang device_id sa phpMyAdmin
+   (devices table) o sa page source (`data-device-id`). Ang
+   agent mo-execute ra sa mga device_id nga naa sa config — ang
+   wala didto, i-report niya nga "no driver configured" ug dili
+   modagan.
 
 ## Lakang 3 — Agent sa imong PC
 
@@ -112,6 +124,9 @@ Kada tawo naay kaugalingong account ug kaugalingong devices:
   kaugalingong devices ug activity; ang password naka-hash; ang
   daan nga devices i-assign sa unang user (tan-awa ang Per-user
   section sa taas).
+- **"View all activity" tinuod na**: mo-abli og full history
+  (50 entries, imoha ra) imbis scroll ra; ang power button label
+  mo-update na inig switch og device.
 - **D-pad gi-ayo**: kaniadto ang up kay "home", left kay "back",
   right kay "forward", down kay "channel-down", ug ang OK kay
   play-pause. Karon: up/down/left/right/enter gyud.
