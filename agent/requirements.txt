@@ -1,0 +1,5 @@
+requests>=2.31
+samsungtvws>=2.5
+pywebostv>=0.61
+soco>=0.30
+pyautogui>=0.9.54

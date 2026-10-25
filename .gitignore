@@ -1,0 +1,9 @@
+
+# Real-remote secrets and pairing data (never commit)
+# connection.php holds the live DB credentials — the InfinityFree server
+# copy stays untouched; it must never be pushed to the new repo.
+/connection.php
+/backend/agent_config.php
+/agent/config.json
+/agent/samsung-token.txt
+/agent/lg-key.json
